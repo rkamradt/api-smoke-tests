@@ -1,12 +1,17 @@
 """
 Entry point for the smoke test CronJob.
 Runs pytest, emits a structured JSON summary to stdout for Loki ingestion,
-then exits with pytest's return code so the CronJob status reflects pass/fail.
+sends a Gmail alert on failures, then exits with pytest's return code.
 """
 import json
+import logging
 import subprocess
 import sys
 from datetime import datetime, timezone
+
+from notify import send_failure_alert
+
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
 
 
 REPORT_FILE = "/tmp/smoke-report.json"
@@ -38,17 +43,24 @@ def main():
             if t["outcome"] in ("failed", "error")
         ]
 
-        print(json.dumps({
-            "event": "smoke_test_run",
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+        counts = {
             "passed": summary.get("passed", 0),
             "failed": summary.get("failed", 0),
             "error": summary.get("error", 0),
             "skipped": summary.get("skipped", 0),
             "total": summary.get("total", 0),
             "duration_s": round(report.get("duration", 0), 2),
+        }
+
+        print(json.dumps({
+            "event": "smoke_test_run",
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            **counts,
             "failures": failures,
         }), flush=True)
+
+        if failures:
+            send_failure_alert(failures, counts)
 
     except Exception as e:
         print(json.dumps({

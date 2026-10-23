@@ -15,9 +15,5 @@ env:
 # or reference existing cluster secrets
 secretRefs: []
 # - secretName: grafana-smoke-secret
-#   keys:
-#     - GRAFANA_API_KEY
 # - secretName: minio-smoke-secret
-#   keys:
-#     - MINIO_ACCESS_KEY
-#     - MINIO_SECRET_KEY
+# - secretName: gmail-smoke-secret

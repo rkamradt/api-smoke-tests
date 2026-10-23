@@ -7,9 +7,10 @@
 # Required for image pulls (always):
 #   - ghcr-secret        copied from an existing namespace
 #
-# Optional — tests skip automatically when these are absent:
+# Optional — skipped silently when these are absent:
 #   - grafana-smoke-secret   needs GRAFANA_API_KEY env var
 #   - minio-smoke-secret     needs MINIO_ACCESS_KEY + MINIO_SECRET_KEY env vars
+#   - gmail-smoke-secret     needs GMAIL_USER + GMAIL_APP_PASSWORD (+ optional GMAIL_TO)
 #
 # Usage:
 #   ./setup-secrets.sh [--create-namespace] [--source-ns <ns>]
@@ -83,6 +84,22 @@ if [[ -n "${MINIO_ACCESS_KEY:-}" && -n "${MINIO_SECRET_KEY:-}" ]]; then
 else
   echo "MINIO_ACCESS_KEY / MINIO_SECRET_KEY not set — skipping minio-smoke-secret."
   echo "  To add later: MINIO_ACCESS_KEY=<key> MINIO_SECRET_KEY=<secret> ./setup-secrets.sh"
+fi
+
+# --- gmail-smoke-secret (optional) ---
+echo ""
+if [[ -n "${GMAIL_USER:-}" && -n "${GMAIL_APP_PASSWORD:-}" ]]; then
+  GMAIL_TO_VAL="${GMAIL_TO:-randykamradt@gmail.com}"
+  kubectl create secret generic gmail-smoke-secret \
+    --namespace "$NAMESPACE" \
+    --from-literal=GMAIL_USER="$GMAIL_USER" \
+    --from-literal=GMAIL_APP_PASSWORD="$GMAIL_APP_PASSWORD" \
+    --from-literal=GMAIL_TO="$GMAIL_TO_VAL" \
+    --dry-run=client -o yaml | kubectl apply -f -
+  echo "gmail-smoke-secret applied (to: $GMAIL_TO_VAL)."
+else
+  echo "GMAIL_USER / GMAIL_APP_PASSWORD not set — skipping gmail-smoke-secret."
+  echo "  To add later: GMAIL_USER=<addr> GMAIL_APP_PASSWORD=<app-pw> ./setup-secrets.sh"
 fi
 
 echo ""
