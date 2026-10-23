@@ -1,0 +1,50 @@
+name: Build and Push
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set image tag
+        id: tag
+        run: echo "tag=sha-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/rkamradt/api-smoke-tests:${{ steps.tag.outputs.tag }}
+
+      - name: Patch helm chart version
+        env:
+          HELM_CHARTS_PAT: ${{ secrets.HELM_CHARTS_PAT }}
+        run: |
+          SHORT_SHA="${{ steps.tag.outputs.tag }}"
+          git clone https://x-access-token:${HELM_CHARTS_PAT}@github.com/rkamradt/rkamradt-helm-charts.git
+          cd rkamradt-helm-charts
+          cat > api-smoke-tests/version-values.yaml <<EOF
+          image:
+            tag: "sha-${SHORT_SHA}"
+          EOF
+          git config user.email "ci@github.com"
+          git config user.name "CI"
+          git add api-smoke-tests/version-values.yaml
+          git commit -m "api-smoke-tests: deploy sha-${SHORT_SHA}"
+          git push

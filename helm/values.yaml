@@ -1,0 +1,23 @@
+image:
+  repository: ghcr.io/rkamradt/api-smoke-tests
+  tag: sha-0000000
+  pullPolicy: IfNotPresent
+
+schedule: "*/30 * * * *"  # every 30 minutes
+
+# Override in-cluster base URLs if non-default
+env:
+  SMOKE_TIMEOUT: "15"
+  OLLAMA_MODEL: "llama3.2:3b-instruct-q4_K_M"
+  # FHIR_BASE_URL, OLLAMA_BASE_URL, etc. fall back to hardcoded defaults
+
+# Secrets injected as env vars — create these in the namespace manually
+# or reference existing cluster secrets
+secretRefs: []
+# - secretName: grafana-smoke-secret
+#   keys:
+#     - GRAFANA_API_KEY
+# - secretName: minio-smoke-secret
+#   keys:
+#     - MINIO_ACCESS_KEY
+#     - MINIO_SECRET_KEY
