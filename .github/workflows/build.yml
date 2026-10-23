@@ -42,7 +42,7 @@ jobs:
           mkdir -p api-smoke-tests
           cat > api-smoke-tests/version-values.yaml <<EOF
           image:
-            tag: "sha-${SHORT_SHA}"
+            tag: "${SHORT_SHA}"
           EOF
           git config user.email "ci@github.com"
           git config user.name "CI"
