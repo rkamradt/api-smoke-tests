@@ -39,6 +39,7 @@ jobs:
           SHORT_SHA="${{ steps.tag.outputs.tag }}"
           git clone https://x-access-token:${HELM_CHARTS_PAT}@github.com/rkamradt/rkamradt-helm-charts.git
           cd rkamradt-helm-charts
+          mkdir -p api-smoke-tests
           cat > api-smoke-tests/version-values.yaml <<EOF
           image:
             tag: "sha-${SHORT_SHA}"
