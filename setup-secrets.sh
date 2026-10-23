@@ -18,7 +18,7 @@
 set -euo pipefail
 
 NAMESPACE="api-smoke-tests"
-SOURCE_NS="cluster-ops-agent"   # any namespace that already has ghcr-secret
+SOURCE_NS="home"   # any namespace that already has ghcr-secret
 
 # --- parse flags ---
 CREATE_NS=false
@@ -43,11 +43,14 @@ fi
 
 echo "Namespace: $NAMESPACE"
 
-# --- ghcr-secret (copy from source namespace) ---
+# --- ghcr-secret (copy from source namespace, skip if already present) ---
 echo ""
-echo "Copying ghcr-secret from namespace '$SOURCE_NS'..."
-kubectl get secret ghcr-secret -n "$SOURCE_NS" -o json \
-  | python3 -c "
+if kubectl get secret ghcr-secret -n "$NAMESPACE" &>/dev/null; then
+  echo "ghcr-secret already exists in '$NAMESPACE' — skipping."
+else
+  echo "Copying ghcr-secret from namespace '$SOURCE_NS'..."
+  kubectl get secret ghcr-secret -n "$SOURCE_NS" -o json \
+    | python3 -c "
 import sys, json
 s = json.load(sys.stdin)
 s['metadata'].pop('creationTimestamp', None)
@@ -57,7 +60,8 @@ s['metadata'].pop('annotations', None)
 s['metadata']['namespace'] = '$NAMESPACE'
 print(json.dumps(s))
 " | kubectl apply -f -
-echo "ghcr-secret applied."
+  echo "ghcr-secret applied."
+fi
 
 # --- grafana-smoke-secret (optional) ---
 echo ""
