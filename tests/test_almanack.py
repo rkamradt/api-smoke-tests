@@ -10,6 +10,12 @@ import pytest
 
 BASE_URL = os.getenv("ALMANACK_BASE_URL", "http://almanack.almanack:8000")
 
+# Skip all tests if the service is not yet deployed
+pytestmark = pytest.mark.skipif(
+    not os.getenv("ALMANACK_BASE_URL"),
+    reason="ALMANACK_BASE_URL not set — almanack not yet deployed",
+)
+
 
 @pytest.fixture
 def almanack_url():
