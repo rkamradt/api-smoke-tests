@@ -13,11 +13,6 @@ def http():
 
 
 @pytest.fixture
-def fhir_base_url():
-    return os.getenv("FHIR_BASE_URL", "http://priorauth-fhir.priorauth-fhir:8080/fhir")
-
-
-@pytest.fixture
 def ollama_base_url():
     return os.getenv("OLLAMA_BASE_URL", "http://ollama.llm:11434")
 
