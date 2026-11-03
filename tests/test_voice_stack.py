@@ -31,9 +31,9 @@ def _tcp_ok(host: str, port: int) -> None:
 
 
 def test_home_assistant_http(http):
-    """HA login page loads — server is up."""
+    """HA is up — root returns 200 (onboarding) or 302 (redirect to login)."""
     r = http.get(f"{HA_BASE_URL}/")
-    assert r.status_code == 200, f"Expected 200, got {r.status_code}"
+    assert r.status_code in (200, 302), f"Expected 200 or 302, got {r.status_code}"
 
 
 def test_whisper_wyoming_port():
