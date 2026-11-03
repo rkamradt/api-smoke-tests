@@ -23,11 +23,6 @@ def cluster_ops_agent_base_url():
 
 
 @pytest.fixture
-def axon_base_url():
-    return os.getenv("AXON_BASE_URL", "http://axon-server.axon-server:8024")
-
-
-@pytest.fixture
 def grafana_base_url():
     return os.getenv("GRAFANA_BASE_URL", "http://grafana.monitoring:3000")
 
